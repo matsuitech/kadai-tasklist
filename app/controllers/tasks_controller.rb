@@ -1,9 +1,10 @@
 class TasksController < ApplicationController
     before_action :set_task, only: [:show, :edit, :update, :destroy]
-    before_action :require_user_logged_in, only: [:index, :show]
+    before_action :require_user_logged_in
+    before_action :correct_user, only: [:destroy]
     
     def index
-        @pagy, @tasks = pagy(Task.order(id: :desc), items:3)
+        @pagy, @tasks = pagy(current_user.tasks.order(id: :desc), items:25)
     end
     
     def show
@@ -14,12 +15,13 @@ class TasksController < ApplicationController
     end
     
     def create
-        @task = Task.new(task_params)
+        @task = current_user.tasks.build(task_params)
         
         if @task.save
             flash[:success] = 'Task が正常に作成されました'
             redirect_to @task
         else
+            @pagy, @tasks = pagy(current_user.tasks.order(id: :desc), items:25)
             flash.now[:danger] = 'Task が作成されませんでした'
             render :new
         end
@@ -43,7 +45,7 @@ class TasksController < ApplicationController
         @task.destroy
         
         flash[:success] = 'Task は正常に削除されました'
-        redirect_to tasks_url
+        redirect_back(fallback_location: root_path)
     end
 
 
@@ -56,5 +58,12 @@ class TasksController < ApplicationController
     # Strong Parameter
     def task_params
         params.require(:task).permit(:content, :status)
+    end
+    
+    def correct_user
+        @task = current_user.tasks.find_by(id: params[:id])
+        unless @task
+            rederect_to root_path
+        end
     end
 end

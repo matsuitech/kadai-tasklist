@@ -7,6 +7,7 @@
                 <th>id</th>
                 <th>タスク</th>
                 <th>ステータス</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -15,6 +16,9 @@
                     <td><%= link_to task.id, task %></td>
                     <td><%= task.content %></td>
                     <td><%= task.status %></td>
+                    <td><% if current_user == task.user %>
+                            <%= link_to "Delete", task, method: :delete, data: { confirm: "You sure?" }, class: 'btn btn-danger btn-sm' %></td>
+                        <% end %>
                 </tr>
             <% end %>
         </tbody>
